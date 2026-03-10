@@ -2,7 +2,7 @@
 
 专注版[mdbook](https://github.com/rust-lang/mdBook)
 
-专心写文档，忘掉summary。
+专注写文档，忘掉summary。
 
 ## 功能
 
@@ -10,7 +10,7 @@
 - `build`,`watch`,`serve` 执行时，将前置执行 `scan`
 - 自定义章节名称和排序
 
-> 注：生成book时，每个 `.md` 文件作为一个章节出现在导航栏。
+> 注：生成book时，每个 `.md` 文件可作为一个章节。
 
 ## 安装
 
@@ -20,15 +20,19 @@
 
 指令一切照旧。
 
-> `mdbook scan` 命令已前置在 `mdbook build`,`mdbook watch`,`mdbook serve` 中，不用特地执行。
+`mdbook scan` 命令已前置在 `build`,`watch`,`serve` 中，不用特地执行 `scan`。
 
-> 注：`mdbook watch`, `mdbook serve` 只在命令前执行一次`mdbook scan`，命令执行中发现变动时只会重新加载文件，不会改变 `SUMMARY.md`
+`watch`, `serve` 这种阻塞命令，只会在阻塞前执行一次 `scan`，若改动文件时编辑了自定义设置，需退出并重新执行。
 
-自定义章节名称和排序功能，也通过 `.md` 文档内容进行设置，不用关注其他部分。
+自定义章节名称和排序功能，是通过 `.md` 文档内容进行设置，不用关注其他部分。
+
+文件夹同样可用自定义功能，需通过文件夹下的 `README.md` 进行设置，比如 `src/foo` 文件夹，将读取 `src/foo/README.md` 进行设置。
+
+> 由于文件夹与其下 `README.md` 绑定，生成的 `SUMMARY.md` 将不会列出子目录的 `README` 章节。
 
 两个知识点：
 1. Markdown 一级标题 `# `，一般位于首行，使用后用于命名文章总标题。
-2. Markdown(html) 注释行 `<!-- -->`，单独一行，内容不显示在最终文章中。
+2. Markdown(html) 注释行 `<!-- -->`，单独一行，内容不显示在渲染页面中。
 
 ### 自定章节名称
 
@@ -53,6 +57,69 @@
 若 `.md`文件**前10行**内，存在注释行 `<!-- order=1 -->`，则使用`1`作为文件排序值。多次设置则以最后一次内容为准。相同目录内的文件将按照此排序值进行**升序**排序。
 
 **排序值范围: 0到65535**; 0最前，依次往后，相同排序值的文件将按照扫描顺序排序。
+
+
+## 示例
+
+tree
+```bash
+src/
+├── SUMMARY.md
+├── bar
+│   └── README.md
+├── chapter_1.md
+├── chapter_2.md
+├── chapter_3.md
+└── foo
+    └── README.md
+```
+
+cat src/chapter_1.md
+```md
+# Chapter 1 Header Title
+
+<!-- order=9 -->
+<!-- order=8 -->
+<!-- order=1 -->
+```
+
+
+
+src/chapter_2.md
+```md
+# Chapter 2
+
+<!-- order=0 -->
+<!-- title=Chapter 2 Title In Comment -->
+```
+
+cat src/chapter_3.md
+```md
+<!-- order=2 -->
+```
+
+cat src/foo/README.md
+```md
+# Foo Dir Title
+
+<!-- order=0 -->
+```
+
+cat src/bar/README.md
+```md
+# Bar Dir Title
+
+<!-- order=0 -->
+```
+
+最终生成的 `SUMMARY.md`：
+```md
+- [Chapter 2 Title In Comment](chapter_2.md)
+- [Foo Dir Title](foo/README.md)
+- [Bar Dir Title](bar/README.md)
+- [Chapter 1 Header Title](chapter_1.md)
+- [chapter_3](chapter_3.md)
+```
 
 ## 声明
 
