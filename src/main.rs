@@ -23,12 +23,21 @@ fn main() {
     // Check which subcommand the user ran...
     let res = match command.get_matches().subcommand() {
         Some(("init", sub_matches)) => cmd::init::execute(sub_matches),
-        Some(("build", sub_matches)) => cmd::build::execute(sub_matches),
+        Some(("build", sub_matches)) => {
+            cmd::scan::execute(sub_matches).unwrap();
+            cmd::build::execute(sub_matches)
+        },
         Some(("clean", sub_matches)) => cmd::clean::execute(sub_matches),
         #[cfg(feature = "watch")]
-        Some(("watch", sub_matches)) => cmd::watch::execute(sub_matches),
+        Some(("watch", sub_matches)) => {
+            cmd::scan::execute(sub_matches).unwrap();
+            cmd::watch::execute(sub_matches)
+        },
         #[cfg(feature = "serve")]
-        Some(("serve", sub_matches)) => cmd::serve::execute(sub_matches),
+        Some(("serve", sub_matches)) => {
+            cmd::scan::execute(sub_matches).unwrap();
+            cmd::serve::execute(sub_matches)
+        },
         Some(("test", sub_matches)) => cmd::test::execute(sub_matches),
         Some(("completions", sub_matches)) => (|| {
             let shell = sub_matches
@@ -44,6 +53,7 @@ fn main() {
             );
             Ok(())
         })(),
+        Some(("scan", sub_matches)) => cmd::scan::execute(sub_matches),
         _ => unreachable!(),
     };
 
@@ -86,6 +96,8 @@ fn create_clap_command() -> Command {
     let app = app.subcommand(cmd::watch::make_subcommand());
     #[cfg(feature = "serve")]
     let app = app.subcommand(cmd::serve::make_subcommand());
+
+    let app = app.subcommand(cmd::scan::make_subcommand());
 
     app
 }
